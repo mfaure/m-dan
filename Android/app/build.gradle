@@ -1,16 +1,29 @@
-apply plugin: 'com.android.application'
-apply plugin: 'com.neenbedankt.android-apt'
-def AAVersion = '3.3.2'
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+}
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    compileSdkVersion 30
+    buildToolsVersion "30.0.3"
+
+    buildFeatures {
+        viewBinding true
+    }
 
     defaultConfig {
-        minSdkVersion 19
-        targetSdkVersion 23
+        minSdkVersion 23
+        targetSdkVersion 30
         vectorDrawables.useSupportLibrary = true
+
+        // If you have different applicationIds for buildTypes or productFlavors uncomment this block.
+        //javaCompileOptions {
+        /*   annotationProcessorOptions {
+               arguments = ["resourcePackageName": android.defaultConfig.applicationId]
+           }*/
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
+
 
     lintOptions {
         checkReleaseBuilds false
@@ -19,29 +32,21 @@ android {
         abortOnError false
     }
 
-    signingConfigs {
-        debug {
-            storeFile file("debug.keystore.jks")
-            storePassword "devrap"
-            keyAlias "com.devrap.1013reseau.keystore"
-            keyPassword "devrap"
-        }
-        unsigned {
-            storePassword = ""
-            keyAlias = ""
-            keyPassword = ""
-        }
-    }
+// Specific config
 
-    // Specific config
+    flavorDimensions "version"
+
     productFlavors {
         qualif {
-            applicationId "com.orange.ease.dan.qualif"
+            dimension "version"
+            applicationId "com.orange.labs.dan.qualif"
             versionCode 11
             versionName "3.3"
         }
         prod {
-            applicationId "com.orange.ease.dan"
+            dimension "version"
+            isDefault true
+            applicationId "com.orange.labs.dan"
             versionCode 1
             versionName "1.0"
         }
@@ -63,32 +68,56 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 }
 
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
+    // include the view badgers etc.
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'androidx.viewpager2:viewpager2:1.0.0'
+    implementation project(path: ':AccessibilityStatementLibrary')
+
+    androidTestImplementation('androidx.test.espresso:espresso-core:3.4.0') {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    }
+
+    androidTestImplementation('androidx.test.espresso:espresso-contrib:3.4.0') {
+        exclude group: 'com.android.support', module: 'appcompat'
+        exclude group: 'com.android.support', module: 'support-v4'
+        exclude group: 'com.android.support', module: 'support-v7'
+        exclude group: 'com.android.support', module: 'design'
+        exclude module: 'support-annotations'
+        exclude module: 'recyclerview-v7'
+    }
+
     // AppCompat / Support
-    compile 'com.android.support:appcompat-v7:23.2.1'
-    compile 'com.android.support:cardview-v7:23.2.1'
-    compile 'com.android.support:recyclerview-v7:23.2.1'
-    apt "org.androidannotations:androidannotations:$AAVersion"
-    compile "org.androidannotations:androidannotations-api:$AAVersion"
-    compile('cn.trinea.android.view.autoscrollviewpager:android-auto-scroll-view-pager:1.1.2') {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation "androidx.fragment:fragment-ktx:1.2.5"
+    implementation 'androidx.appcompat:appcompat:1.3.1'
+    implementation 'com.google.android.material:material:1.3.0'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.2.1'
+    implementation 'com.android.support:design:30.0.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    implementation 'com.github.pzienowicz:androidx-auto-scroll-view-pager:1.0.0'
+    implementation 'androidx.core:core:1.0.1'
+
+    def AAVersion = '4.8.0'
+    annotationProcessor "org.androidannotations:androidannotations:$AAVersion"
+    implementation "org.androidannotations:androidannotations-api:$AAVersion"
+
+    implementation('cn.trinea.android.view.autoscrollviewpager:android-auto-scroll-view-pager:1.1.2') {
         exclude module: 'support-v4'
     }
+    testImplementation 'junit:junit:4.13.2'
 }
 
-apt {
-    arguments {
-        androidManifestFile variant.outputs[0].processResources.manifestFile
-        // if you have multiple outputs (when using splits), you may want to have other index than 0
-
-        // you should set your package name here if you are using different application IDs
-        resourcePackageName "com.orange.ease.dan"
-
-        // You can set optional annotation processing options here, like these commented options:
-        // logLevel 'INFO'
-        // logFile '/var/log/aa.log'
-    }
-}
